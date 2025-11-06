@@ -23,7 +23,7 @@ const AdminLogin = () => {
 
       setMessage("✅ Login successful! Redirecting...");
       setTimeout(() => {
-        window.location.href = "/admin/dashboard"; // Redirect after success
+        window.location.href = "/"; // Redirect after success
       }, 1000);
     } catch (error) {
       console.error("Login error:", error);
