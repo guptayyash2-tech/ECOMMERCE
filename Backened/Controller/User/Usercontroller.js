@@ -100,5 +100,37 @@ const getuser = async (req, res) => {
     res.status(500).json({ error: "Server error. Please try again later." });
   }
 };
+// ✏️ PUT /api/users/me → Update logged-in user info
+const updateuser = async (req, res) => {
+  try {
+    const { name, email} = req.body;
 
-module.exports = { postuser, postuserlogin, getuser };
+    // 🔐 Find the current user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // 🧩 Update only provided fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+   
+
+    // 💾 Save updated data
+    const updatedUser = await user.save();
+
+    // 🧼 Remove password before sending back
+    const { password, ...userData } = updatedUser.toObject();
+
+    res.status(200).json({
+      message: "✅ User profile updated successfully.",
+      user: userData,
+    });
+  } catch (error) {
+    console.error("❌ Error updating user:", error);
+    res.status(500).json({ error: "Server error. Please try again later." });
+  }
+};
+
+
+module.exports = { postuser, postuserlogin, getuser,updateuser };

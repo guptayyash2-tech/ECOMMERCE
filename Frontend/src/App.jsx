@@ -13,6 +13,12 @@ import ProductDetails from "./Admin/Proudctbyid";
 import Adminhome from "./Admin/Adminhome";
 import UserRegister from "./User/Userregisterprofile";
 import UserLogin from "./User/Loginuser";
+import GetUserProfile from "./User/Getuser";
+import UserDashboard from "./User/Userhome";
+import UpdateUserProfile from "./User/Updateuserprofile";
+import CreateUserPersonal from "./User/Createpersonal";
+import GetUserPersonal from "./User/Getcreatepersonal";
+import UpdateUserPersonal from "./User/Updateuserpersonal";
 
 
 
@@ -40,7 +46,14 @@ function App() {
 
 <Route path="/user/registeruser" element={<UserRegister/>}/>
 <Route path="/user/loginuser" element={<UserLogin/>}/>
+<Route path="/user/getuser" element={<GetUserProfile/>}/>
 
+<Route path="/user" element={<UserDashboard/>}/>
+
+<Route path="/user/updateuser" element={<UpdateUserProfile/>}/>
+<Route path="/user/createpersonaluser" element={<CreateUserPersonal/>}/>
+<Route path="/user/getpersonaluser" element={<GetUserPersonal/>}/>
+<Route path="/user/updatepersonaluser" element={<UpdateUserPersonal/>}/>
      </Routes>
    
     

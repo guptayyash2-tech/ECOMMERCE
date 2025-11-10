@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // 🌍 Base URL for your backend (adjust if needed)
-const BASE_URL = import.meta.env.VITE_ADMIN_API_URL || "http://localhost:3019/user";
+const BASE_URL =
+  import.meta.env.VITE_ADMIN_API_URL || "http://localhost:3019/user";
 
 // Axios instance
 export const user = axios.create({
@@ -33,16 +34,47 @@ user.interceptors.response.use(
   }
 );
 
+// ==================== 🔽 USER AUTH & PROFILE ====================
 
-
-export const userlogin = async(data)=>{
-  const response = await user.post("/loginuser",data);
+export const userlogin = async (data) => {
+  const response = await user.post("/loginuser", data);
   return response.data;
-}
-export const registeruserprofile = async(data)=>{
-  
-    const response = await user.post("/registeruser",data);
-    return response.data;
+};
 
-}
+export const registeruserprofile = async (data) => {
+  const response = await user.post("/registeruser", data);
+  return response.data;
+};
 
+export const getuserprofile = async () => {
+  const response = await user.get("/getuser");
+  return response.data;
+};
+
+export const updateuser = async (data) => {
+  const response = await user.put("/updateuser", data);
+  return response.data;
+};
+
+// ==================== 🔽 USER PERSONAL INFO ====================
+
+export const createpersonal = async (data) => {
+  const response = await user.post("/createpersonaluser", data);
+  return response.data;
+};
+
+export const getuserpersonal = async () => {
+  const response = await user.get("/getpersonaluser");
+  return response.data;
+};
+
+export const updateuserpersonal = async (data) => {
+  const response = await user.put("/updatepersonaluser", data);
+  return response.data;
+};
+
+// 🗑 Delete user personal info
+export const deleteuserpersonal = async () => {
+  const response = await user.delete("/deletepersonaluser");
+  return response.data;
+};

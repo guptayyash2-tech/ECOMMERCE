@@ -26,8 +26,8 @@ const UserLogin = () => {
       const response = await userlogin(formData);
 
       if (response.token) {
-        localStorage.setItem("adminToken", response.token);
-        navigate("/dashboard");
+        localStorage.setItem("userToken", response.token);
+        navigate("/user");
       } else {
         setError("Login failed: No token received.");
       }
