@@ -68,3 +68,19 @@ export const getcompanyprofile= async(data)=>{
   const response = await admin.get("/admin/getcompanyprofile",data);
   return response.data;
 }
+
+export const postregisterproduct = async (data) => {
+  const response = await admin.post("/admin/registerproduct", data, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response;}
+  export const getProducts= async(data)=>{
+  const response = await admin.get("/admin/getregisterproduct",data);
+  return response.data;
+}
+export const getproductbyid = async(id)=>{
+  const response = await admin.get(`/admin/getproductsbyid/${id}`);
+  return response.data;
+}

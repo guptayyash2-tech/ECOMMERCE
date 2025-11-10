@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 
 const otprouter = require("./Router/Router");
 const adminrouter = require("./Router/adminrouter/adminrouter");
+const userrouter = require("./Router/userrouter/Userrouter");
 const MongoStore = require("connect-mongodb-session")(session);
 
 dotenv.config();
@@ -28,6 +29,8 @@ index.set("view engine", "ejs");
 
 index.use("/otp",otprouter)
 index.use("/admin",adminrouter);
+index.use("/user",userrouter);
+
 
 // ✅ MongoDB connection string
 const DB_PATH =
