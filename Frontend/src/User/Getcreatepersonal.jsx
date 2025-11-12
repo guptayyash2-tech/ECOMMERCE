@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteuserpersonal, getuserpersonal, user } from "./Userapi"; // reuse axios instance
+import { deleteuserpersonal, getuserpersonal } from "./Userapi";
 
 const GetUserPersonal = () => {
   const navigate = useNavigate();
@@ -8,37 +8,51 @@ const GetUserPersonal = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   // ✅ Fetch user personal info
-  useEffect(() => {
-    const fetchPersonal = async () => {
-      try {
-        const response = await getuserpersonal();
-        const data = response?.data || response;
-        setPersonal(data);
-      } catch (err) {
-        console.error("❌ Error fetching personal info:", err);
+  const fetchPersonal = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await getuserpersonal();
+      const data = response?.data || response;
+      setPersonal(data);
+    } catch (err) {
+      console.error("❌ Error fetching personal info:", err);
+
+      // ✅ If backend returns 404, treat it as "no personal info found"
+      if (err.response?.status === 404) {
+        setPersonal(null);
+      } else {
         setError("Failed to load personal info.");
-      } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPersonal();
   }, []);
 
+  // 🗑 Handle delete
   const handleDelete = async () => {
-  if (!window.confirm("Are you sure you want to delete your personal info?")) return;
-  try {
-    await deleteuserpersonal();
-    alert("Personal info deleted successfully!");
-    setPersonal(null);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to delete personal info.");
-  }
-};
+    if (!window.confirm("Are you sure you want to delete your personal info?")) return;
+    setDeleting(true);
+    try {
+      await deleteuserpersonal();
+      setPersonal(null);
+      setMessage("✅ Personal info deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Failed to delete personal info.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
-  // 🌀 Loading
+  // 🌀 Loading state
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-600 text-lg">
@@ -46,15 +60,21 @@ const GetUserPersonal = () => {
       </div>
     );
 
-  // ❌ Error
+  // ❌ Error state
   if (error)
     return (
-      <div className="flex justify-center items-center h-screen text-red-600">
-        {error}
+      <div className="flex flex-col justify-center items-center h-screen text-red-600 space-y-4">
+        <p>{error}</p>
+        <button
+          onClick={fetchPersonal}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          🔄 Retry
+        </button>
       </div>
     );
 
-  // ➕ No data found — show “Add Personal Info” button only here
+  // ➕ No data found (404) — show “Add Personal Info”
   if (!personal) {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-gray-700">
@@ -75,7 +95,7 @@ const GetUserPersonal = () => {
     );
   }
 
-  // ✅ When personal info exists — show details + edit/delete buttons
+  // ✅ When personal info exists
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <div className="max-w-3xl mx-auto bg-white shadow-md rounded-2xl p-8 border border-gray-200">
@@ -84,7 +104,7 @@ const GetUserPersonal = () => {
             👤 Personal Information
           </h1>
           <button
-            onClick={() => navigate("/user/updatepersonal")}
+            onClick={() => navigate("/user/updatepersonaluser")}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition"
           >
             ✏️ Edit
@@ -159,9 +179,12 @@ const GetUserPersonal = () => {
 
           <button
             onClick={handleDelete}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition"
+            disabled={deleting}
+            className={`${
+              deleting ? "bg-red-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+            } text-white px-6 py-2 rounded-lg transition`}
           >
-            🗑 Delete Personal Info
+            {deleting ? "Deleting..." : "🗑 Delete Personal Info"}
           </button>
         </div>
       </div>

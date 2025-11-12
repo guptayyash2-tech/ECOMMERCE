@@ -1,77 +1,73 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import GetAllProducts from "./products/Getproducts";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(
+    () => !!localStorage.getItem("userToken")
+  );
 
-  // ✅ Check if user is logged in
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(() => !!localStorage.getItem("userToken"));
+  // 🔍 Search, Filter, and Price States
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
 
-  // 🚪 Handle Logout
+  // 🚪 Logout
   const handleLogout = () => {
     localStorage.removeItem("userToken");
     localStorage.removeItem("role");
     setIsUserLoggedIn(false);
-    navigate("/"); // redirect to homepage
+    navigate("/");
   };
 
-  // 🧭 Navigation Links
+  // 📦 Navigation Links
   const userLinks = [
-    { to: "/user/getuser", label: "👤 View Profile", style: "bg-blue-600 text-white" },
-    { to: "/user/getpersonaluser", label: "Profile ", style: "bg-indigo-600 text-white" },
-    { to: "/user/viewproducts", label: "🛍️ Browse Products", style: "bg-green-600 text-white" },
-    { to: "/user/vieworders", label: "📦 My Orders", style: "bg-purple-600 text-white" },
+    { to: "/user/getuser", label: "👤 View Profile", style: "from-indigo-500 to-blue-500" },
+    { to: "/user/getpersonaluser", label: "🧾 My Info", style: "from-purple-500 to-pink-500" },
+    { to: "/user/viewproducts", label: "🛍️ Browse Products", style: "from-emerald-500 to-green-500" },
+    { to: "/user/addtocart", label: "🛒 My Cart", style: "from-yellow-500 to-orange-500" },
   ];
 
-  // 🔍 Handle search
+  // 🧠 Handle Search Submit
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Search for:", search);
+    console.log("Search filters:", {
+      search,
+      category,
+      priceMin: priceRange.min,
+      priceMax: priceRange.max,
+    });
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-      {/* 🧭 Header Section */}
-      <header className="w-full bg-white shadow-sm py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10">
-        <h1 className="text-3xl font-bold text-indigo-700">🛒 User Dashboard</h1>
-
-        {/* 🔍 Search Bar */}
-        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="Search products or orders..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-          />
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-          >
-            🔍
-          </button>
-        </form>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900">
+      {/* 🧭 Header */}
+      <header className="w-full bg-white/80 backdrop-blur-md shadow-md py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 border-b border-gray-200">
+        <h1 className="text-3xl font-extrabold text-indigo-700 tracking-tight drop-shadow-sm">
+          🛒 User Dashboard
+        </h1>
 
         {/* 🚪 Logout */}
         {isUserLoggedIn && (
           <button
             onClick={handleLogout}
-            className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-5 py-2 rounded-lg font-semibold shadow transition-all"
+            className="bg-gradient-to-r from-red-500 to-pink-600 hover:scale-105 text-white px-5 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300"
           >
             🚪 Logout
           </button>
         )}
       </header>
 
-      {/* 🔗 Navigation Buttons at Top */}
-      <nav className="w-full bg-white shadow-sm py-6 px-6">
+      {/* 🔗 Navigation Buttons */}
+      <nav className="w-full bg-white/60 backdrop-blur-sm py-8 px-6 border-b border-gray-200 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {userLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`${link.style} font-semibold px-6 py-4 rounded-xl text-center hover:scale-105 hover:shadow-md hover:brightness-110 transition-all duration-300`}
+              className={`bg-gradient-to-r ${link.style} text-white font-semibold px-6 py-4 rounded-2xl text-center 
+                shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300`}
             >
               {link.label}
             </Link>
@@ -79,26 +75,31 @@ const UserDashboard = () => {
         </div>
       </nav>
 
-      {/* 📦 Main Content Area */}
+      {/* 📦 Main Content */}
       <main className="flex-grow px-6 py-10 max-w-6xl mx-auto">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Welcome back 👋
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Use the buttons above to manage your profile, view products, and track your orders.
-        </p>
-
-        {/* Example Placeholder for Page Content */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <p className="text-gray-500 text-center">
-            Select an option above to get started.
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+            Welcome back 👋
+          </h2>
+          <p className="text-gray-500 text-base">
+            Explore, shop, and manage your products with ease.
           </p>
+        </div>
+
+        {/* 🛍️ Products Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+          <GetAllProducts
+            search={search}
+            category={category}
+            priceMin={priceRange.min}
+            priceMax={priceRange.max}
+          />
         </div>
       </main>
 
       {/* 📜 Footer */}
-      <footer className="w-full py-4 text-center text-sm text-gray-500 border-t">
-        © 2025 ShopNow User Portal. All rights reserved.
+      <footer className="w-full py-5 text-center text-sm text-gray-500 border-t border-gray-200 bg-white/70 backdrop-blur-sm">
+        © 2025 <span className="font-semibold text-indigo-600">ShopNow</span> — All rights reserved.
       </footer>
     </div>
   );

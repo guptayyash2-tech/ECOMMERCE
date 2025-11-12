@@ -19,6 +19,9 @@ import UpdateUserProfile from "./User/Updateuserprofile";
 import CreateUserPersonal from "./User/Createpersonal";
 import GetUserPersonal from "./User/Getcreatepersonal";
 import UpdateUserPersonal from "./User/Updateuserpersonal";
+import GetAllProducts from "./User/products/Getproducts";
+import GetproductDetails from "./User/products/Getproductbyid";
+import AddToCart from "./User/products/Addtocart";
 
 
 
@@ -54,6 +57,10 @@ function App() {
 <Route path="/user/createpersonaluser" element={<CreateUserPersonal/>}/>
 <Route path="/user/getpersonaluser" element={<GetUserPersonal/>}/>
 <Route path="/user/updatepersonaluser" element={<UpdateUserPersonal/>}/>
+
+<Route path="/user/getallproducts" element={<GetAllProducts/>}/>
+<Route path="/user/getallcompanyproducts/:id" element={<GetproductDetails/>}/>
+<Route path="/user/addtocart" element={<AddToCart/>}/>
      </Routes>
    
     

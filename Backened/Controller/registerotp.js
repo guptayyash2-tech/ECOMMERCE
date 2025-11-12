@@ -1,150 +1,145 @@
-require("dotenv").config(); // ✅ Load .env at the very top
+require("dotenv").config(); // Load .env FIRST
 
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const twilio = require("twilio");
+
 const Otp = require("../mongo/Admin/otp");
 const Admin = require("../mongo/Admin/admin");
-const twilio = require("twilio");
-const jwt = require("jsonwebtoken");
 
-// ✅ Check environment variables
-console.log("🔍 TWILIO_ACCOUNT_SID:", process.env.TWILIO_ACCOUNT_SID);
-console.log("🔍 TWILIO_AUTH_TOKEN:", process.env.TWILIO_AUTH_TOKEN);
-console.log("🔍 TWILIO_PHONE_NUMBER:", process.env.TWILIO_PHONE_NUMBER);
+// ✅ Check environment variables on startup
+if (!process.env.JWT_SECRET) console.warn("⚠️ Missing JWT_SECRET in .env");
+if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN)
+  console.warn("⚠️ Missing Twilio credentials in .env");
 
-// ✅ Initialize Twilio client safely
+// ✅ Initialize Twilio client
 let client;
 try {
-  client = new twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
+  client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  console.log("✅ Twilio client initialized");
 } catch (err) {
-  console.error("❌ Failed to initialize Twilio:", err.message);
+  console.error("❌ Failed to initialize Twilio client:", err.message);
 }
 
-// ✅ JWT token generator
-const generateToken = (adminId) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET not defined in environment variables");
-  }
-  return jwt.sign({ id: adminId, role: "admin" }, process.env.JWT_SECRET, {
+// ✅ Generate JWT token
+const generateToken = (adminId) =>
+  jwt.sign({ id: adminId, role: "admin" }, process.env.JWT_SECRET, {
     expiresIn: "25d",
   });
-};
 
-// ✅ STEP 1: REGISTER - Send OTP
+// ===================================================
+// 🪄 STEP 1: ADMIN REGISTER → SEND OTP
+// ===================================================
 const adminRegister = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password || !phone) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // Delete old OTP entries for same email
+    // 🧩 Delete any previous OTP for this email
     await Otp.deleteOne({ email });
 
-    // Generate random 6-digit OTP
+    // 🧩 Generate OTP
     const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Hash password & OTP
+    // 🧩 Hash password and OTP
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedOtp = await bcrypt.hash(generatedOtp, 10);
 
-    // Save OTP document
+    // 🧩 Save OTP entry
     const otpDoc = new Otp({
       name,
       email,
       phone,
       password: hashedPassword,
       otp: hashedOtp,
-      otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 mins expiry
+      otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 mins
     });
-
     await otpDoc.save();
 
-    // ✅ Try sending OTP via Twilio
+    // 🧩 Try sending SMS via Twilio
     try {
-      const message = await client.messages.create({
-        body: `Your Admin registration OTP is: ${generatedOtp}`,
+      const msg = await client.messages.create({
+        body: `Your Admin OTP is ${generatedOtp}. It expires in 5 minutes.`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: phone,
       });
 
-      console.log("✅ Twilio SMS sent:", message.sid);
+      console.log("✅ Twilio message sent:", msg.sid);
       return res.status(200).json({
         success: true,
         message: "OTP sent successfully. It will expire in 5 minutes.",
         email,
       });
-    } catch (smsError) {
-      console.error("❌ Twilio SMS Error:", smsError.message);
+    } catch (err) {
+      console.error("❌ Twilio SMS Error:", err.message);
 
-      // Fallback for development/testing
+      // ⚠️ fallback for testing/dev only
       return res.status(200).json({
         success: true,
-        message:
-          "⚠️ Twilio SMS failed — OTP generated (showing for testing only)",
-        testOtp: generatedOtp, // ⚠️ remove this in production
+        message: "⚠️ Twilio failed — showing OTP for testing (remove in prod)",
+        testOtp: generatedOtp,
         email,
       });
     }
-  } catch (error) {
-    console.error("❌ Error in adminRegister:", error);
+  } catch (err) {
+    console.error("❌ Error in adminRegister:", err);
     return res.status(500).json({
       success: false,
-      message: "Server error while sending OTP",
-      error: error.message,
+      message: "Server error during registration",
+      error: err.message,
     });
   }
 };
 
-// ✅ STEP 2: VERIFY - Confirm OTP & Register Admin
+// ===================================================
+// 🧩 STEP 2: VERIFY OTP → CREATE ADMIN ACCOUNT
+// ===================================================
 const adminVerify = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+      return res.status(400).json({ success: false, message: "Email and OTP are required" });
     }
 
-    const otpData = await Otp.findOne({ email });
-    if (!otpData) {
-      return res.status(400).json({ message: "OTP not found or expired" });
+    const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: "OTP not found or expired" });
     }
 
-    // Check if OTP expired
-    if (otpData.otpExpires < new Date()) {
+    // Expiry check
+    if (otpRecord.otpExpires < new Date()) {
       await Otp.deleteOne({ email });
-      return res.status(400).json({ message: "OTP has expired" });
+      return res.status(400).json({ success: false, message: "OTP has expired" });
     }
 
-    // Compare OTP entered with hashed one
-    const isMatch = await bcrypt.compare(otp, otpData.otp);
+    // Validate OTP
+    const isMatch = await bcrypt.compare(otp, otpRecord.otp);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
-    // ✅ Create new admin
+    // Create Admin
     const newAdmin = new Admin({
-      username: otpData.name,
-      email: otpData.email,
-      phone: otpData.phone,
-      password: otpData.password, // already hashed
+      username: otpRecord.name,
+      email: otpRecord.email,
+      phone: otpRecord.phone,
+      password: otpRecord.password, // already hashed
       role: "admin",
     });
 
     await newAdmin.save();
+    await Otp.deleteOne({ email }); // cleanup
 
-    // Delete OTP document after successful registration
-    await Otp.deleteOne({ email });
-
-    // Generate JWT token
+    // Generate Token
     const token = generateToken(newAdmin._id);
 
     return res.status(201).json({
       success: true,
-      message: "Admin registered successfully",
+      message: "Admin registered successfully ✅",
       token,
       admin: {
         id: newAdmin._id,
@@ -153,12 +148,12 @@ const adminVerify = async (req, res) => {
         phone: newAdmin.phone,
       },
     });
-  } catch (error) {
-    console.error("❌ Error in adminVerify:", error);
+  } catch (err) {
+    console.error("❌ Error in adminVerify:", err);
     return res.status(500).json({
       success: false,
       message: "Server error during OTP verification",
-      error: error.message,
+      error: err.message,
     });
   }
 };

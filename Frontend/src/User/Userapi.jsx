@@ -78,3 +78,25 @@ export const deleteuserpersonal = async () => {
   const response = await user.delete("/deletepersonaluser");
   return response.data;
 };
+
+export const getallcompanyproducts = async () => {
+  const response = await user.get("/getallcompanyproducts");
+  return response.data;
+}
+
+
+
+export const getallcompanyproductsbyid = async (id) => {
+  const response = await user.get(`/getallcompanyproducts/${id}`);
+  return response.data;
+}
+
+export const addtocart = async (data) => {
+  const response = await user.post("/addtocart", data);
+  return response.data;
+};
+export const getcartbyuser = async () => {
+  const response = await user.get("/getcart");
+  return response.data;
+};
+

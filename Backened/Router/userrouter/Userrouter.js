@@ -2,6 +2,8 @@ const express  =require("express");
 const protect = require("../../middlewear/usermiddle");
 const { postuser, postuserlogin, getuser, updateuser } = require("../../Controller/User/Usercontroller");
 const { createUserpersonal, getUserpersonal, updateUserpersonal, deleteUserpersonal } = require("../../Controller/User/Userpersonal");
+const { getProducts, getProductById } = require("../../Controller/Companyitem");
+const { addToCart, getCartByUser } = require("../../Controller/Cart");
 const userrouter = express.Router();
 
 userrouter.post("/registeruser",postuser)
@@ -12,4 +14,8 @@ userrouter.post("/createpersonaluser",protect,createUserpersonal)
 userrouter.get("/getpersonaluser",protect,getUserpersonal)
 userrouter.put("/updatepersonaluser",protect,updateUserpersonal)
 userrouter.delete("/deletepersonaluser",protect,deleteUserpersonal)
+userrouter.get("/getallcompanyproducts",protect,getProducts);
+userrouter.get("/getallcompanyproducts/:id",protect,getProductById);
+userrouter.post("/addtocart", protect, addToCart);
+userrouter.get("/getcart", protect, getCartByUser);
 module.exports = userrouter;
