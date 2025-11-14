@@ -99,4 +99,7 @@ export const getcartbyuser = async () => {
   const response = await user.get("/getcart");
   return response.data;
 };
-
+export const createOrder = async (orderData) => {
+  const res = await user.post("/createorder", orderData);
+  return res.data;
+};

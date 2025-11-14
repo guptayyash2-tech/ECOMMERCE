@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getcartbyuser } from "../Userapi";
 import { useNavigate } from "react-router-dom";
+import { getcartbyuser } from "../Userapi";
 
 const Addtocart = () => {
   const [cart, setCart] = useState(null);
@@ -99,7 +99,7 @@ const Addtocart = () => {
 
       <div className="flex justify-end mt-6">
         <button
-          onClick={() => navigate("/user/checkout", { state: { cart } })}
+          onClick={() => navigate("/user/createorder", { state: { cart } })}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition-all"
         >
           Proceed to Checkout →

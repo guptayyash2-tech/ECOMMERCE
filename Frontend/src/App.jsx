@@ -22,6 +22,7 @@ import UpdateUserPersonal from "./User/Updateuserpersonal";
 import GetAllProducts from "./User/products/Getproducts";
 import GetproductDetails from "./User/products/Getproductbyid";
 import AddToCart from "./User/products/Addtocart";
+import CheckoutPage from "./User/products/Order";
 
 
 
@@ -61,6 +62,7 @@ function App() {
 <Route path="/user/getallproducts" element={<GetAllProducts/>}/>
 <Route path="/user/getallcompanyproducts/:id" element={<GetproductDetails/>}/>
 <Route path="/user/addtocart" element={<AddToCart/>}/>
+<Route path="/user/createorder" element={<CheckoutPage/>}/>
      </Routes>
    
     

@@ -40,14 +40,18 @@ exports.addToCart = async (req, res) => {
 };
 exports.getCartByUser = async (req, res) => {
   try {
-    const userId = req.user.id; // user ID from JWT token
-    const cart = await Cart.findOne({ userId }).populate('items.productId');
+    const userId = req.user.id;
+
+    let cart = await Cart.findOne({ userId }).populate("items.productId");
+
+    // 🧺 If user has no cart yet, return an empty structure (not a 404)
     if (!cart) {
-      return res.status(404).json({ success: false, message: 'Cart not found' });
+      cart = { userId, items: [] };
     }
 
-    res.json({ success: true, cart });
+    return res.json({ success: true, cart });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("❌ Error fetching cart:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

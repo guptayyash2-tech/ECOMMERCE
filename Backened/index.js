@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
-
 const otprouter = require("./Router/Router");
 const adminrouter = require("./Router/adminrouter/adminrouter");
 const userrouter = require("./Router/userrouter/Userrouter");
@@ -14,8 +13,8 @@ dotenv.config();
 
 const index = express();
 
-// ✅ Allow larger JSON and URL-encoded bodies (fix for PayloadTooLargeError)
-index.use(express.json({ limit: "50mb" })); // increase if needed
+// ✅ Allow larger JSON and URL-encoded bodies
+index.use(express.json({ limit: "50mb" }));
 index.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // ✅ Enable CORS
@@ -26,17 +25,19 @@ index.set("views", "ejs");
 index.set("view engine", "ejs");
 
 // ✅ Routes
-
-index.use("/otp",otprouter)
-index.use("/admin",adminrouter);
-index.use("/user",userrouter);
-
+index.use("/otp", otprouter);
+index.use("/admin", adminrouter);
+index.use("/user", userrouter);
 
 // ✅ MongoDB connection string
 const DB_PATH =
   "mongodb+srv://homeregister:pMgp4PUS8csyrnYC@group8.mwqmfsy.mongodb.net/ECOMMERCE?retryWrites=true&w=majority";
 
 const PORT = 3019;
+
+// ✅ Important: Fix populate error
+mongoose.set("strictPopulate", false); // 🟢 ADD THIS LINE
+mongoose.set("strictQuery", false);    // optional but recommended
 
 // ✅ Connect to MongoDB
 mongoose

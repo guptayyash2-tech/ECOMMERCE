@@ -4,6 +4,7 @@ const { postuser, postuserlogin, getuser, updateuser } = require("../../Controll
 const { createUserpersonal, getUserpersonal, updateUserpersonal, deleteUserpersonal } = require("../../Controller/User/Userpersonal");
 const { getProducts, getProductById } = require("../../Controller/Companyitem");
 const { addToCart, getCartByUser } = require("../../Controller/Cart");
+const { createOrder } = require("../../Controller/User/Odercontroller");
 const userrouter = express.Router();
 
 userrouter.post("/registeruser",postuser)
@@ -18,4 +19,5 @@ userrouter.get("/getallcompanyproducts",protect,getProducts);
 userrouter.get("/getallcompanyproducts/:id",protect,getProductById);
 userrouter.post("/addtocart", protect, addToCart);
 userrouter.get("/getcart", protect, getCartByUser);
+userrouter.post("/createorder", protect, createOrder);
 module.exports = userrouter;
